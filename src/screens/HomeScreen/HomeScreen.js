@@ -3,27 +3,27 @@ import { FlatList, Keyboard, Text, TextInput, TouchableOpacity, View } from 'rea
 import styles from './styles';
 import { firebase } from '../../firebase/config'
 
-export default function HomeScreen(props) {
+export default function HomeScreen(props, {navigation}) {
 
     const [tareaText, setTareaText] = useState('') //variable para crear una tarea
     const [tareas, setTareas] = useState([]) //arregeloo de todas las tareas
 
-    const tareaRef = firebase.firestore().collection('tareas') //defenimos la colleción
-    const userID = props.extraData.id //obnetemos el usuario conectado
+    const tareaRef = firebase.firestore().collection('tareas') //definimos la colleción
+    const userID = props.extraData.id //obtenemos el usuario conectado
 
-    useEffect(() => { //traemos todas las tareas de l usuario conectado ordenados por fecha dexc
+    useEffect(() => { //traemos todas las tareas del usuario conectado ordenados por fecha dexc
         tareaRef
             .where("authorID", "==", userID)
             .orderBy('createdAt', 'desc')
             .onSnapshot(
                 querySnapshot => {
-                    const newTareas = [] //crearmos un arreglo auxiliar
-                    querySnapshot.forEach(doc => { //iteramos, extrameros los datos de la bd
+                    const newTareas = [] //Creamos un arreglo auxiliar
+                    querySnapshot.forEach(doc => { //iteramos, extraemos los datos de la BD
                         const tarea = doc.data()
                         tarea.id = doc.id
-                        newTareas.push(tarea) //se recoorre cada elemento y se agrega al arrelgo newTareas
+                        newTareas.push(tarea) //se recorre cada elemento y se agrega al arreglo newTareas
                     });
-                    setTareas(newTareas) //Modificamos el estado de tareas con el arrelgo newTareas
+                    setTareas(newTareas) //Modificamos el estado de tareas con el arreglo newTareas
                 },
                 error => {
                     console.log(error)
@@ -32,12 +32,12 @@ export default function HomeScreen(props) {
     }, [])
 
     const onAddButtonPress = () => { //funcion para agregar tarea
-        if (tareaText && tareaText.length > 0) { //revisamoso que no sea nullo
+        if (tareaText && tareaText.length > 0) { //revisamos que no sea nulo
             const timestamp = firebase.firestore.FieldValue.serverTimestamp(); //nos traemos la fecha y hora del servidor de firestor
             //objeto tarea
-            const data = { //decalaramos la sigueinte estructura, que se almacenara en la bd
+            const data = { //declaramos la siguiente estructura, que se almacenará en la bd
                 texto: tareaText, //texto de la tarea es igual a lo que capturamos
-                authorID: userID, //usaurio logeado
+                authorID: userID, //usuario logeado
                 createdAt: timestamp, //la fecha y hora
             };
 
@@ -63,9 +63,26 @@ export default function HomeScreen(props) {
         )
     }
 
+    const cerrar  = () => { 
+        firebase.auth().signOut()
+       
+        .then(() => {
+            alert("Saliendo...");
+            window.location.href = window.location.href; //Cerrando sesión 
+        })
+        .catch((error) => {
+            alert(error)
+        });
+        
+    }
+
     return ( //retornamos la vista un textInput que esta conectatdo a tareaText, setTareaText
         <View style={styles.container}>
+            <TouchableOpacity style={styles.button} onPress={cerrar}>
+                    <Text style={styles.buttonText}>Cerrar sesión</Text>
+                </TouchableOpacity>
             <View style={styles.formContainer}>
+                
                 <TextInput
                     style={styles.input}
                     placeholder='Agregar una nueva tarea'
